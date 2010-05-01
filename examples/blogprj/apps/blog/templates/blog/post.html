@@ -1,0 +1,17 @@
+<div class="post 
+    {% if not post.published %}
+        not_published
+    {% endif %}">
+    <h1 class="title">
+         <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        <span style="font-size: 50%">
+        {% if not post.published %}
+            <em>(unpublished)</em>
+        {% endif %}
+        <a href="{{ post.get_absolute_url }}edit/">edit</a>
+        <a href="{{ post.get_absolute_url }}delete/">delete</a>
+    </h1>
+    <span class="author">by {{ post.author }}</span>
+    <p class="content">{{ post.content }}</p>
+    <span class="added">{{ post.datetime_added }}</span>
+</div>

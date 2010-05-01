@@ -1,0 +1,4 @@
+secret.txt
+*.db
+*.pyc
+.DS_Store

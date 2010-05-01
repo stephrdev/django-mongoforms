@@ -1,0 +1,9 @@
+{% extends "blog/base.html" %}
+
+{% block body %}
+    <a href="/new/">New post</a>
+
+    {% for post in posts %}
+        {% include "blog/post.html" %}
+    {% endfor %}
+{% endblock %}

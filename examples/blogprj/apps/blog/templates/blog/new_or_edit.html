@@ -1,0 +1,20 @@
+{% extends "blog/base.html" %}
+
+{% block header %}
+    <style type="text/css" media="screen">
+        form label {
+            display: block;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <a href="/">Back to index</a>
+
+    <form method="post" action=".">
+        {{ form.as_p }}
+        
+        <input type="submit" value="Submit" id="" />
+    </form>
+{% endblock %}

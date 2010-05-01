@@ -1,15 +1,19 @@
+import types
 from django import forms
 from django.utils.datastructures import SortedDict
 from mongoengine.base import BaseDocument
 from fields import MongoFormFieldGenerator
 from utils import mongoengine_validate_wrapper, iter_valid_fields
 
+__all__ = ('MongoForm',)
+
 class MongoFormMetaClass(type):
     """Metaclass to create a new MongoForm."""
 
     def __new__(cls, name, bases, attrs):
         # get all valid existing Fields and sort them
-        fields = [(field_name, attrs.pop(field_name)) for field_name, obj in attrs.items() if isinstance(obj, forms.Field)]
+        fields = [(field_name, attrs.pop(field_name)) for field_name, obj in \
+            attrs.items() if isinstance(obj, forms.Field)]
         fields.sort(lambda x, y: cmp(x[1].creation_counter, y[1].creation_counter))
 
         # get all Fields from base classes
@@ -21,16 +25,19 @@ class MongoFormMetaClass(type):
         attrs['base_fields'] = SortedDict(fields)
         
         # Meta class available?
-        if 'Meta' in attrs and hasattr(attrs['Meta'], 'document') and issubclass(attrs['Meta'].document, BaseDocument):
+        if 'Meta' in attrs and hasattr(attrs['Meta'], 'document') and \
+           issubclass(attrs['Meta'].document, BaseDocument):
             doc_fields = SortedDict()
 
-            formfield_generator = getattr(attrs['Meta'], 'formfield_generator', MongoFormFieldGenerator)()
+            formfield_generator = getattr(attrs['Meta'], 'formfield_generator', \
+                MongoFormFieldGenerator)()
 
             # walk through the document fields
             for field_name, field in iter_valid_fields(attrs['Meta']):
                 # add field and override clean method to respect mongoengine-validator
                 doc_fields[field_name] = formfield_generator.generate(field_name, field)
-                doc_fields[field_name].clean = mongoengine_validate_wrapper(doc_fields[field_name].clean, field._validate)
+                doc_fields[field_name].clean = mongoengine_validate_wrapper(
+                    doc_fields[field_name].clean, field._validate)
 
             # write the new document fields to base_fields
             doc_fields.update(attrs['base_fields'])
@@ -45,8 +52,14 @@ class MongoForm(forms.BaseForm):
     """Base MongoForm class. Used to create new MongoForms"""
     __metaclass__ = MongoFormMetaClass
 
-    def __init__(self, data=None, auto_id='id_%s', prefix=None, initial=None, error_class=forms.util.ErrorList, label_suffix=':', empty_permitted=False, instance=None):
+    def __init__(self, data=None, auto_id='id_%s', prefix=None, initial=None,
+                 error_class=forms.util.ErrorList, label_suffix=':',
+                 empty_permitted=False, instance=None):
         """ initialize the form"""
+
+        assert isinstance(instance, (types.NoneType, BaseDocument)), \
+            'instance must be a mongoengine document, not %s' % \
+                type(instance).__name__
 
         assert hasattr(self, 'Meta'), 'Meta class is needed to use MongoForm'
         # new instance or updating an existing one?
@@ -71,7 +84,8 @@ class MongoForm(forms.BaseForm):
             object_data.update(initial)
 
         self._validate_unique = False
-        super(MongoForm, self).__init__(data, None, auto_id, prefix, object_data, error_class, label_suffix, empty_permitted)
+        super(MongoForm, self).__init__(data, None, auto_id, prefix, object_data, \
+            error_class, label_suffix, empty_permitted)
 
     def save(self, commit=True):
         """save the instance or create a new one.."""
