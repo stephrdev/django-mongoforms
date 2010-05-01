@@ -8,10 +8,15 @@
         {% if not post.published %}
             <em>(unpublished)</em>
         {% endif %}
+        </span>
+    </h1>
+    <div class="operations">
         <a href="{{ post.get_absolute_url }}edit/">edit</a>
         <a href="{{ post.get_absolute_url }}delete/">delete</a>
-    </h1>
-    <span class="author">by {{ post.author }}</span>
+    </div>
+    <span class="infobar">
+        by {{ post.author }}, {{ post.datetime_added|date:"d.m.Y H:i:s" }}
+    </span>
+    
     <p class="content">{{ post.content }}</p>
-    <span class="added">{{ post.datetime_added }}</span>
 </div>
