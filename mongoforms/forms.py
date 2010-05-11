@@ -4,6 +4,7 @@ from django.utils.datastructures import SortedDict
 from mongoengine.base import BaseDocument
 from fields import MongoFormFieldGenerator
 from utils import mongoengine_validate_wrapper, iter_valid_fields
+from mongoengine.fields import ReferenceField
 
 __all__ = ('MongoForm',)
 
@@ -77,7 +78,10 @@ class MongoForm(forms.BaseForm):
             # walk through the document fields
             for field_name, field in iter_valid_fields(self._meta):
                 # add field data if needed
-                object_data[field_name] = getattr(instance, field_name)
+                field_data = getattr(instance, field_name)
+                if isinstance(self._meta.document._fields[field_name], ReferenceField):
+                    field_data = str(field_data.id)
+                object_data[field_name] = field_data
 
         # additional initial data available?
         if initial is not None:

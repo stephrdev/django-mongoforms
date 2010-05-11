@@ -18,7 +18,7 @@ def mongoengine_validate_wrapper(old_clean, new_clean):
 
 def iter_valid_fields(meta):
     """walk through the available valid fields.."""
-    
+
     # fetch field configuration and always add the id_field as exclude
     meta_fields = getattr(meta, 'fields', ())
     meta_exclude = getattr(meta, 'exclude', ()) + (meta.document._meta.get('id_field'),)

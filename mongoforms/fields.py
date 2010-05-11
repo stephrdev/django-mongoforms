@@ -1,4 +1,41 @@
 from django import forms
+from pymongo.objectid import ObjectId
+from django.utils.encoding import smart_unicode
+
+class ReferenceField(forms.ChoiceField):
+    """
+    Reference field for mongo forms. Inspired by `django.forms.models.ModelChoiceField`.
+    """
+    def __init__(self, queryset, *aargs, **kwaargs):
+        forms.Field.__init__(self, *aargs, **kwaargs)
+        self.queryset = queryset
+
+    def _get_queryset(self):
+        return self._queryset
+
+    def _set_queryset(self, queryset):
+        self._queryset = queryset
+        self.widget.choices = self.choices
+
+    queryset = property(_get_queryset, _set_queryset)
+
+    def _get_choices(self):
+        if hasattr(self, '_choices'):
+            return self._choices
+
+        self._choices = [(obj.id, smart_unicode(obj)) for obj in self.queryset]
+        return self._choices
+
+    choices = property(_get_choices, forms.ChoiceField._set_choices)
+
+    def clean(self, value):
+        oid = ObjectId(value)
+        oid = super(ReferenceField, self).clean(oid)
+        try:
+            obj = self.queryset.get(id=value)
+        except self.queryset._document.DoesNotExist:
+            raise forms.ValidationError(self.error_messages['invalid_choice'] % {'value':value})
+        return obj
 
 class MongoFormFieldGenerator(object):
     """This class generates Django form-fields for mongoengine-fields."""
@@ -89,3 +126,6 @@ class MongoFormFieldGenerator(object):
             required=field.required,
             initial=field.default
         )
+
+    def generate_referencefield(self, field_name, field):
+        return ReferenceField(field.document_type.objects)
