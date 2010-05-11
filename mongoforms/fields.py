@@ -1,6 +1,7 @@
 from django import forms
-from pymongo.objectid import ObjectId
 from django.utils.encoding import smart_unicode
+from pymongo.errors import InvalidId
+from pymongo.objectid import ObjectId
 
 class ReferenceField(forms.ChoiceField):
     """
@@ -29,11 +30,11 @@ class ReferenceField(forms.ChoiceField):
     choices = property(_get_choices, forms.ChoiceField._set_choices)
 
     def clean(self, value):
-        oid = ObjectId(value)
-        oid = super(ReferenceField, self).clean(oid)
         try:
-            obj = self.queryset.get(id=value)
-        except self.queryset._document.DoesNotExist:
+            oid = ObjectId(value)
+            oid = super(ReferenceField, self).clean(oid)
+            obj = self.queryset.get(id=oid)
+        except (TypeError, InvalidId, self.queryset._document.DoesNotExist):
             raise forms.ValidationError(self.error_messages['invalid_choice'] % {'value':value})
         return obj
 
