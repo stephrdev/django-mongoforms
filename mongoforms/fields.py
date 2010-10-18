@@ -68,6 +68,13 @@ class MongoFormFieldGenerator(object):
                 initial=field.default,
                 choices=zip(field.choices, field.choices)
             )
+        elif field.max_length is None:
+            return forms.CharField(
+                required=field.required,
+                initial=field.default,
+                min_length=field.min_length,
+                widget=forms.Textarea
+            )
         else:
             return forms.CharField(
                 required=field.required,
