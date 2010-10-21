@@ -2,3 +2,5 @@ secret.txt
 *.db
 *.pyc
 .DS_Store
+.project
+.pydevproject
