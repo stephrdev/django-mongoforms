@@ -33,7 +33,10 @@ class ReferenceField(forms.ChoiceField):
         try:
             oid = ObjectId(value)
             oid = super(ReferenceField, self).clean(oid)
-            obj = self.queryset.get(id=oid)
+            if 'id' in self.queryset._query_obj.query:
+                obj = self.queryset.get()
+            else:
+                obj = self.queryset.get(id=oid)
         except (TypeError, InvalidId, self.queryset._document.DoesNotExist):
             raise forms.ValidationError(self.error_messages['invalid_choice'] % {'value':value})
         return obj
