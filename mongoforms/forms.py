@@ -80,7 +80,8 @@ class MongoForm(forms.BaseForm):
                 # add field data if needed
                 field_data = getattr(instance, field_name)
                 if isinstance(self._meta.document._fields[field_name], ReferenceField):
-                    field_data = str(field_data.id)
+                    # field data could be None for not populated refs
+                    field_data = field_data and str(field_data.id)
                 object_data[field_name] = field_data
 
         # additional initial data available?
