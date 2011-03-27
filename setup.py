@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
- 
+
 setup(
     name='django-mongoforms',
     version='0.1',
@@ -7,7 +7,7 @@ setup(
     author='Stephan Jaekel',
     author_email='steph@rdev.info',
     url='http://github.com/stephrdev/django-mongoforms/',
-    packages=find_packages(),
+    packages=find_packages(exclude=['examples', 'examples.*']),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
