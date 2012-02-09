@@ -53,9 +53,9 @@ class MongoForm(forms.BaseForm):
     """Base MongoForm class. Used to create new MongoForms"""
     __metaclass__ = MongoFormMetaClass
 
-    def __init__(self, data=None, auto_id='id_%s', prefix=None, initial=None,
-                 error_class=forms.util.ErrorList, label_suffix=':',
-                 empty_permitted=False, instance=None):
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+        initial=None, error_class=forms.util.ErrorList, label_suffix=':',
+        empty_permitted=False, instance=None):
         """ initialize the form"""
 
         assert isinstance(instance, (types.NoneType, BaseDocument)), \
@@ -89,8 +89,8 @@ class MongoForm(forms.BaseForm):
             object_data.update(initial)
 
         self._validate_unique = False
-        super(MongoForm, self).__init__(data, None, auto_id, prefix, object_data, \
-            error_class, label_suffix, empty_permitted)
+        super(MongoForm, self).__init__(data, files, auto_id, prefix,
+            object_data, error_class, label_suffix, empty_permitted)
 
     def save(self, commit=True):
         """save the instance or create a new one.."""
