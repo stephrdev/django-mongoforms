@@ -29,12 +29,14 @@ class TestRunner(test):
 
 setup(
     name='django-mongoforms',
-    version='0.1',
+    version='0.2',
     description='A Django-ModelForm clone for mongoengine',
     author='Stephan Jaekel',
     author_email='steph@rdev.info',
+    maintainer='Serge Matveenko',
+    maintainer_email='s@matveenko.ru',
     url='http://github.com/stephrdev/django-mongoforms/',
-    packages=find_packages(exclude=['examples', 'examples.*']),
+    packages=find_packages(exclude=['examples', 'examples.*', 'testprj', 'testprj.*']),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
