@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.encoding import smart_unicode
-from pymongo.errors import InvalidId
-from pymongo.objectid import ObjectId
+from bson.errors import InvalidId
+from bson.objectid import ObjectId
 
 class ReferenceField(forms.ChoiceField):
     """
