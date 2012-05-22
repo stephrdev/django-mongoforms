@@ -1,2 +1,2 @@
 from render import *
-#from validate import *
+from validate import *

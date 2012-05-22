@@ -1,187 +1,198 @@
-from django.utils import unittest
+from decimal import Decimal
+
 from mongoengine import Document, EmbeddedDocument
 from mongoengine.fields import *
 
-from mongoforms import MongoForm
+from mongoforms.fields import MongoFormFieldGenerator
 
 from testprj.tests import MongoengineTestCase
 
 
-class MongoformsFieldValidateTest(MongoengineTestCase):
-    field = None  # mongoengine field instance to test
-    correct_samples = None  # list of correct sample field values
-    incorrect_samples = None  # list of incorrect sample field values
+class _FieldValidateTestCase(MongoengineTestCase):
+
+    # mongoengine field instance to test
+    field_class = None
+    # list of correct sample field values before and after clean
+    correct_samples = ()
+    # list of incorrect sample field values before clean
+    incorrect_samples = ()
+    # hook for not implemented fields
+    is_not_implemented = False
+
+    def setUp(self):
+        self.generator = MongoFormFieldGenerator()
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = self.field_class()
+
+        return TestDocument._fields['test_field']
+
+    def get_form_field(self):
+        return self.generator.generate('test_field', self.get_field())
 
     def runTest(self):
 
+        # skip test as we have already tested this in render tests
+        if self.is_not_implemented:
+            return
+
+        # test for correct samples
+        for dirty_value, clean_value in self.correct_samples:
+            self.assertEqual(
+                clean_value,
+                self.get_form_field().validate(dirty_value))
+
+        # test for incorrect samples
+        for value in self.incorrect_samples:
+            self.assertRaises(
+                ValidationError,
+                lambda: self.get_form_field().validate(value))
+
+
+class Test001StringFieldValidate(_FieldValidateTestCase):
+    field_class = StringField
+    correct_samples = [('test value', None)]
+
+
+class Test002IntFieldValidate(_FieldValidateTestCase):
+    field_class = IntField
+    correct_samples = [('42', None)]
+
+
+class Test003FloatFieldValidate(_FieldValidateTestCase):
+    field_class = FloatField
+    correct_samples = [('3.14', None)]
+
+
+class Test004BooleanFieldValidate(_FieldValidateTestCase):
+    field_class = BooleanField
+    correct_samples = [('1', None), ('0', None)]
+
+
+class Test005DateTimeFieldValidate(_FieldValidateTestCase):
+    field_class = DateTimeField
+    correct_samples = [('1970-01-02 03:04:05.678901', None)]
+
+
+class Test006EmbeddedDocumentFieldValidate(_FieldValidateTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestEmbeddedDocument(EmbeddedDocument):
+            pass
+
         class TestDocument(Document):
-            test_field = self.field
+            test_field = EmbeddedDocumentField(TestEmbeddedDocument)
 
-        class TestForm(MongoForm):
-            class Meta:
-                document = TestDocument
-                fields = ['test_field']
-
-        for sample in self.correct_samples:
-            form = TestForm({'test_field': sample})
-            self.assertTrue(form.is_valid())
-
-        for sample in self.incorrect_samples:
-            form = TestForm({'test_field': sample})
-            self.assertFalse(form.is_valid())
+        return TestDocument._fields['test_field']
 
 
-class Test001StringField(MongoformsFieldValidateTest):
-    field = StringField()
+class Test007ListFieldValidate(_FieldValidateTestCase):
+    field_class = ListField
+    is_not_implemented = True
+
+
+class Test008DictFieldValidate(_FieldValidateTestCase):
+    field_class = DictField
+    is_not_implemented = True
+
+
+class Test009ObjectIdFieldValidate(_FieldValidateTestCase):
+    field_class = ObjectIdField
+    is_not_implemented = True
+
+
+class Test010ReferenceFieldValidate(_FieldValidateTestCase):
     correct_samples = []
-    incorrect_samples = []
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = ReferenceField('self')
+
+        return TestDocument._fields['test_field']
 
 
-class Test002IntField(MongoformsFieldValidateTest):
-    field = IntField()
-    correct_samples = []
-    incorrect_samples = []
+class Test011MapFieldValidate(_FieldValidateTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = MapField(StringField())
+
+        return TestDocument._fields['test_field']
 
 
-class Test003FloatField(MongoformsFieldValidateTest):
-    field = FloatField()
-    correct_samples = []
-    incorrect_samples = []
+class Test012DecimalFieldValidate(_FieldValidateTestCase):
+    field_class = DecimalField
+    correct_samples = [(Decimal('3.14'), Decimal('3.14'))]
 
 
-class Test004BooleanField(MongoformsFieldValidateTest):
-    field = BooleanField()
-    correct_samples = []
-    incorrect_samples = []
+class Test013ComplexDateTimeFieldValidate(_FieldValidateTestCase):
+    field_class = ComplexDateTimeField
+    is_not_implemented = True
 
 
-class Test005DateTimeField(MongoformsFieldValidateTest):
-    field = DateTimeField()
-    correct_samples = []
-    incorrect_samples = []
+class Test014URLFieldValidate(_FieldValidateTestCase):
+    field_class = URLField
+    correct_samples = [('http://www.example.com/', None)]
 
 
-class Test006EmbeddedDocumentField(MongoformsFieldValidateTest):
-    field = EmbeddedDocumentField(EmbeddedDocument)
-    correct_samples = []
-    incorrect_samples = []
+class Test015GenericReferenceFieldValidate(_FieldValidateTestCase):
+    field_class = GenericReferenceField
+    is_not_implemented = True
 
 
-class Test007ListField(MongoformsFieldValidateTest):
-    field = ListField()
-    correct_samples = []
-    incorrect_samples = []
+class Test016FileFieldValidate(_FieldValidateTestCase):
+    field_class = FileField
+    is_not_implemented = True
 
 
-class Test008DictField(MongoformsFieldValidateTest):
-    field = DictField()
-    correct_samples = []
-    incorrect_samples = []
+class Test017BinaryFieldValidate(_FieldValidateTestCase):
+    field_class = BinaryField
+    is_not_implemented = True
 
 
-class Test009ObjectIdField(MongoformsFieldValidateTest):
-    field = ObjectIdField()
-    correct_samples = []
-    incorrect_samples = []
+class Test018SortedListFieldValidate(_FieldValidateTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = SortedListField(StringField)
+
+        return TestDocument._fields['test_field']
 
 
-class Test010ReferenceField(MongoformsFieldValidateTest):
-    field = ReferenceField('self')
-    correct_samples = []
-    incorrect_samples = []
+class Test019EmailFieldValidate(_FieldValidateTestCase):
+    field_class = EmailField
+    correct_samples = [('user@example.com', None)]
 
 
-class Test011MapField(MongoformsFieldValidateTest):
-    field = MapField(StringField())
-    correct_samples = []
-    incorrect_samples = []
+class Test020GeoPointFieldValidate(_FieldValidateTestCase):
+    field_class = GeoPointField
+    is_not_implemented = True
 
 
-class Test012DecimalField(MongoformsFieldValidateTest):
-    field = DecimalField()
-    correct_samples = []
-    incorrect_samples = []
+class Test021ImageFieldValidate(_FieldValidateTestCase):
+    field_class = ImageField
+    is_not_implemented = True
 
 
-class Test013ComplexDateTimeField(MongoformsFieldValidateTest):
-    field = ComplexDateTimeField()
-    correct_samples = []
-    incorrect_samples = []
+class Test022SequenceFieldValidate(_FieldValidateTestCase):
+    field_class = SequenceField
+    is_not_implemented = True
 
 
-class Test014URLField(MongoformsFieldValidateTest):
-    field = URLField()
-    correct_samples = []
-    incorrect_samples = []
+class Test023UUIDFieldValidate(_FieldValidateTestCase):
+    field_class = UUIDField
+    is_not_implemented = True
 
 
-class Test015GenericReferenceField(MongoformsFieldValidateTest):
-    field = GenericReferenceField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test016FileField(MongoformsFieldValidateTest):
-    field = FileField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test017BinaryField(MongoformsFieldValidateTest):
-    field = BinaryField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test018SortedListField(MongoformsFieldValidateTest):
-    field = SortedListField(StringField)
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test019EmailField(MongoformsFieldValidateTest):
-    field = EmailField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test020GeoPointField(MongoformsFieldValidateTest):
-    field = GeoPointField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test021ImageField(MongoformsFieldValidateTest):
-    field = ImageField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test022SequenceField(MongoformsFieldValidateTest):
-    field = SequenceField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test023UUIDField(MongoformsFieldValidateTest):
-    field = UUIDField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-class Test024GenericEmbeddedDocumentField(MongoformsFieldValidateTest):
-    field = GenericEmbeddedDocumentField()
-    correct_samples = []
-    incorrect_samples = []
-
-
-MongoformsFieldsValidate = unittest.TestSuite([
-    Test001StringField(), Test002IntField(), Test003FloatField(),
-    Test004BooleanField(), Test005DateTimeField(),
-    Test006EmbeddedDocumentField(), Test007ListField(), Test008DictField(),
-    Test009ObjectIdField(), Test010ReferenceField(), Test011MapField(),
-    Test012DecimalField(), Test013ComplexDateTimeField(), Test014URLField(),
-    Test015GenericReferenceField(), Test016FileField(), Test017BinaryField(),
-    Test018SortedListField(), Test019EmailField(), Test020GeoPointField(),
-    Test021ImageField(), Test022SequenceField(), Test023UUIDField(),
-    Test024GenericEmbeddedDocumentField()])
+class Test024GenericEmbeddedDocumentFieldValidate(_FieldValidateTestCase):
+    field_class = GenericEmbeddedDocumentField
+    is_not_implemented = True
