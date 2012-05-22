@@ -1,159 +1,181 @@
-from django.utils import unittest
 from mongoengine import Document, EmbeddedDocument
 from mongoengine.fields import *
 
-from mongoforms import MongoForm
+from mongoforms.fields import MongoFormFieldGenerator
 
 from testprj.tests import MongoengineTestCase
 
 
-class MongoformsFieldRenderTest(MongoengineTestCase):
-    field = None  # mongoengine field instance to test
-    rendered_widget = None  # widget rendering result
+class _FieldRenderTestCase(MongoengineTestCase):
+    # mongoengine field instance to test
+    field_class = None
+    # widget rendering result (most common value)
+    rendered_widget = '<input type="text" name="test_field" />'
+    # hook for not implemented fields
+    is_not_implemented = False
+
+    def setUp(self):
+        self.generator = MongoFormFieldGenerator()
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = self.field_class()
+
+        return TestDocument._fields['test_field']
+
+    def get_form_field(self):
+        return self.generator.generate('test_field', self.get_field())
 
     def runTest(self):
 
+        if self.is_not_implemented:
+            self.assertRaises(NotImplementedError, self.get_form_field)
+        else:
+            self.assertMultiLineEqual(
+                self.rendered_widget,
+                self.get_form_field().widget.render('test_field', None))
+
+
+class Test001StringFieldRender(_FieldRenderTestCase):
+    field_class = StringField
+    rendered_widget = \
+        '<textarea rows="10" cols="40" name="test_field"></textarea>'
+
+
+class Test002IntFieldRender(_FieldRenderTestCase):
+    field_class = IntField
+
+
+class Test003FloatFieldRender(_FieldRenderTestCase):
+    field_class = FloatField
+
+
+class Test004BooleanFieldRender(_FieldRenderTestCase):
+    field_class = BooleanField
+    rendered_widget = \
+        '<input type="checkbox" name="test_field" />'
+
+
+class Test005DateTimeFieldRender(_FieldRenderTestCase):
+    field_class = DateTimeField
+
+
+class Test006EmbeddedDocumentFieldRender(_FieldRenderTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestEmbeddedDocument(EmbeddedDocument):
+            pass
+
         class TestDocument(Document):
-            test_field = self.field
+            test_field = EmbeddedDocumentField(TestEmbeddedDocument)
 
-        class TestForm(MongoForm):
-            class Meta:
-                document = TestDocument
-                fields = ['test_field']
-
-        form = TestForm()
-        self.assertMultiLineEqual(
-            self.rendered_widget,
-            form.fields['test_field'].widget.render())
+        return TestDocument._fields['test_field']
 
 
-class Test001StringField(MongoformsFieldRenderTest):
-    field = StringField()
-    rendered_widget = ''
+class Test007ListFieldRender(_FieldRenderTestCase):
+    field_class = ListField
+    is_not_implemented = True
 
 
-class Test002IntField(MongoformsFieldRenderTest):
-    field = IntField()
-    rendered_widget = ''
+class Test008DictFieldRender(_FieldRenderTestCase):
+    field_class = DictField
+    is_not_implemented = True
 
 
-class Test003FloatField(MongoformsFieldRenderTest):
-    field = FloatField()
-    rendered_widget = ''
+class Test009ObjectIdFieldRender(_FieldRenderTestCase):
+    field_class = ObjectIdField
+    is_not_implemented = True
 
 
-class Test004BooleanField(MongoformsFieldRenderTest):
-    field = BooleanField()
-    rendered_widget = ''
+class Test010ReferenceFieldRender(_FieldRenderTestCase):
+    rendered_widget = \
+        '<select name="test_field">\n</select>'
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = ReferenceField('self')
+
+        return TestDocument._fields['test_field']
 
 
-class Test005DateTimeField(MongoformsFieldRenderTest):
-    field = DateTimeField()
-    rendered_widget = ''
+class Test011MapFieldRender(_FieldRenderTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = MapField(StringField())
+
+        return TestDocument._fields['test_field']
 
 
-class Test006EmbeddedDocumentField(MongoformsFieldRenderTest):
-    field = EmbeddedDocumentField(EmbeddedDocument)
-    rendered_widget = ''
+class Test012DecimalFieldRender(_FieldRenderTestCase):
+    field_class = DecimalField
 
 
-class Test007ListField(MongoformsFieldRenderTest):
-    field = ListField()
-    rendered_widget = ''
+class Test013ComplexDateTimeFieldRender(_FieldRenderTestCase):
+    field_class = ComplexDateTimeField
+    is_not_implemented = True
 
 
-class Test008DictField(MongoformsFieldRenderTest):
-    field = DictField()
-    rendered_widget = ''
+class Test014URLFieldRender(_FieldRenderTestCase):
+    field_class = URLField
 
 
-class Test009ObjectIdField(MongoformsFieldRenderTest):
-    field = ObjectIdField()
-    rendered_widget = ''
+class Test015GenericReferenceFieldRender(_FieldRenderTestCase):
+    field_class = GenericReferenceField
+    is_not_implemented = True
 
 
-class Test010ReferenceField(MongoformsFieldRenderTest):
-    field = ReferenceField('self')
-    rendered_widget = ''
+class Test016FileFieldRender(_FieldRenderTestCase):
+    field_class = FileField
+    is_not_implemented = True
 
 
-class Test011MapField(MongoformsFieldRenderTest):
-    field = MapField(StringField())
-    rendered_widget = ''
+class Test017BinaryFieldRender(_FieldRenderTestCase):
+    field_class = BinaryField
+    is_not_implemented = True
 
 
-class Test012DecimalField(MongoformsFieldRenderTest):
-    field = DecimalField()
-    rendered_widget = ''
+class Test018SortedListFieldRender(_FieldRenderTestCase):
+    is_not_implemented = True
+
+    def get_field(self):
+
+        class TestDocument(Document):
+            test_field = SortedListField(StringField)
+
+        return TestDocument._fields['test_field']
 
 
-class Test013ComplexDateTimeField(MongoformsFieldRenderTest):
-    field = ComplexDateTimeField()
-    rendered_widget = ''
+class Test019EmailFieldRender(_FieldRenderTestCase):
+    field_class = EmailField
 
 
-class Test014URLField(MongoformsFieldRenderTest):
-    field = URLField()
-    rendered_widget = ''
+class Test020GeoPointFieldRender(_FieldRenderTestCase):
+    field_class = GeoPointField
+    is_not_implemented = True
 
 
-class Test015GenericReferenceField(MongoformsFieldRenderTest):
-    field = GenericReferenceField()
-    rendered_widget = ''
+class Test021ImageFieldRender(_FieldRenderTestCase):
+    field_class = ImageField
+    is_not_implemented = True
 
 
-class Test016FileField(MongoformsFieldRenderTest):
-    field = FileField()
-    rendered_widget = ''
+class Test022SequenceFieldRender(_FieldRenderTestCase):
+    field_class = SequenceField
+    is_not_implemented = True
 
 
-class Test017BinaryField(MongoformsFieldRenderTest):
-    field = BinaryField()
-    rendered_widget = ''
+class Test023UUIDFieldRender(_FieldRenderTestCase):
+    field_class = UUIDField
+    is_not_implemented = True
 
 
-class Test018SortedListField(MongoformsFieldRenderTest):
-    field = SortedListField(StringField)
-    rendered_widget = ''
-
-
-class Test019EmailField(MongoformsFieldRenderTest):
-    field = EmailField()
-    rendered_widget = ''
-
-
-class Test020GeoPointField(MongoformsFieldRenderTest):
-    field = GeoPointField()
-    rendered_widget = ''
-
-
-class Test021ImageField(MongoformsFieldRenderTest):
-    field = ImageField()
-    rendered_widget = ''
-
-
-class Test022SequenceField(MongoformsFieldRenderTest):
-    field = SequenceField()
-    rendered_widget = ''
-
-
-class Test023UUIDField(MongoformsFieldRenderTest):
-    field = UUIDField()
-    rendered_widget = ''
-
-
-class Test024GenericEmbeddedDocumentField(MongoformsFieldRenderTest):
-    field = GenericEmbeddedDocumentField()
-    rendered_widget = ''
-
-
-MongoformsFieldsRender = unittest.TestSuite([
-    Test001StringField(), Test002IntField(), Test003FloatField(),
-    Test004BooleanField(), Test005DateTimeField(),
-    Test006EmbeddedDocumentField(), Test007ListField(), Test008DictField(),
-    Test009ObjectIdField(), Test010ReferenceField(), Test011MapField(),
-    Test012DecimalField(), Test013ComplexDateTimeField(), Test014URLField(),
-    Test015GenericReferenceField(), Test016FileField(), Test017BinaryField(),
-    Test018SortedListField(), Test019EmailField(), Test020GeoPointField(),
-    Test021ImageField(), Test022SequenceField(), Test023UUIDField(),
-    Test024GenericEmbeddedDocumentField()])
+class Test024GenericEmbeddedDocumentFieldRender(_FieldRenderTestCase):
+    field_class = GenericEmbeddedDocumentField
+    is_not_implemented = True

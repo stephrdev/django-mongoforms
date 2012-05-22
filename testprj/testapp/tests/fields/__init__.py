@@ -1,2 +1,2 @@
-from render import MongoformsFieldRenderTest
-from validate import MongoformsFieldValidateTest
+from render import *
+#from validate import *
