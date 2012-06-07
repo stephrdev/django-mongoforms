@@ -3,10 +3,13 @@ from django.utils.encoding import smart_unicode
 from bson.errors import InvalidId
 from bson.objectid import ObjectId
 
+from widgets import ListWidget
+
 
 class ReferenceField(forms.ChoiceField):
     """
-    Reference field for mongo forms. Inspired by `django.forms.models.ModelChoiceField`.
+    Reference field for mongo forms.
+    Inspired by `django.forms.models.ModelChoiceField`.
     """
     def __init__(self, queryset, *aargs, **kwaargs):
         forms.Field.__init__(self, *aargs, **kwaargs)
@@ -39,8 +42,30 @@ class ReferenceField(forms.ChoiceField):
             else:
                 obj = self.queryset.get(id=oid)
         except (TypeError, InvalidId, self.queryset._document.DoesNotExist):
-            raise forms.ValidationError(self.error_messages['invalid_choice'] % {'value':value})
+            raise forms.ValidationError(
+                self.error_messages['invalid_choice'] % {'value': value})
         return obj
+
+
+class ListField(forms.MultiValueField):
+    """
+    List field for mongo forms.
+    Uses MultiValueField from django.forms module.
+    """
+    field_name_separator = '__'
+
+    def __init__(self, field, field_name_base, list_size=2, *args, **kwargs):
+        forms.Field.__init__(self, *args, **kwargs)
+        self.fields = []
+        field_generator = MongoFormFieldGenerator()
+
+        for field_num in range(list_size):
+            field_name = '%s%s%s' % (
+                field_name_base, self.field_name_separator, field_num)
+            self.fields.append(field_generator.generate(field_name, field))
+
+        self.widget = ListWidget(
+            widgets=map(attrgetter('widget'), self.fields))
 
 
 class MongoFormFieldGenerator(object):
@@ -154,3 +179,11 @@ class MongoFormFieldGenerator(object):
         return ReferenceField(
             field.document_type.objects,
             label=label)
+
+    def generate_listfield(self, field_name, field, label):
+        return ListField(
+            label=label,
+            field=field.field,  # inner_field = this_field.inner_field
+            field_name_base=field_name,
+            required=field.required,
+            initial=field.default)
