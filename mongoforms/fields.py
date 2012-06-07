@@ -68,6 +68,15 @@ class ListField(forms.MultiValueField):
             widgets=map(attrgetter('widget'), self.fields))
 
 
+class EmbeddedDocumentField(forms.Field):
+
+    def __init__(self, field, field_name, *args, **kwargs):
+        from forms import MongoForm
+        super(EmbeddedDocumentField, self).__init__(*args, **kwargs)
+        meta = type('Meta', (), {'document': field.document_type_obj})
+        self.form = type('%sForm' % field_name, (MongoForm,), {'Meta': meta})
+
+
 class MongoFormFieldGenerator(object):
     """This class generates Django form-fields for mongoengine-fields."""
 
@@ -185,5 +194,12 @@ class MongoFormFieldGenerator(object):
             label=label,
             field=field.field,  # inner_field = this_field.inner_field
             field_name_base=field_name,
+            required=field.required,
+            initial=field.default)
+
+    def generate_embeddeddocumentfield(self, field_name, field):
+        return EmbeddedDocumentField(
+            field=field,
+            field_name=field_name,
             required=field.required,
             initial=field.default)
