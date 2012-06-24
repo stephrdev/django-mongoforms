@@ -14,3 +14,13 @@ class Test001Child(Document):
     
     def __unicode__(self):
         return u'%s' % self.name
+
+
+class Test002StringField(Document):
+    string_field_1 = StringField(choices=(
+        ('S', 'Small'),
+        ('M', 'Medium'),
+        ('L', 'Large'),
+        ('XL', 'Extra Large'),
+        ('XXL', 'Extra Extra Large')))
+    string_field_2 = StringField(choices=('S', 'M', 'L', 'XL', 'XXL'))

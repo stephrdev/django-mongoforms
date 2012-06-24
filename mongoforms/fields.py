@@ -66,10 +66,13 @@ class MongoFormFieldGenerator(object):
                 initial=field.default
             )
         elif field.choices:
+            choices = tuple(field.choices)
+            if not isinstance(field.choices[0], (tuple, list)):
+                choices = zip(choices, choices)
             return forms.ChoiceField(
                 required=field.required,
                 initial=field.default,
-                choices=zip(field.choices, field.choices)
+                choices=choices
             )
         elif field.max_length is None:
             return forms.CharField(

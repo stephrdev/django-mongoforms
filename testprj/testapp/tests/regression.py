@@ -1,6 +1,7 @@
 from django.test.client import Client
 
 from ..documents import Test001Parent
+from ..forms import Test002StringFieldForm
 
 from testprj.tests import MongoengineTestCase
 
@@ -33,3 +34,11 @@ class MongoformsRegressionTests(MongoengineTestCase):
         # assert second parent is selected
         self.assertEqual(response.context['form'].data['parent'],
             unicode(parent2.pk), 'second parent must be selected')
+
+
+    def test002_issue_13_StringField_problem(self):
+        form = Test002StringFieldForm(
+            {'string_field_1': 'M', 'string_field_2': 'S'})
+        self.assertTrue(form.is_valid())
+        self.assertEqual('M', form.cleaned_data['string_field_1'])
+        self.assertEqual('S', form.cleaned_data['string_field_2'])
