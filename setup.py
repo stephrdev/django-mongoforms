@@ -31,7 +31,7 @@ class TestRunner(test):
 
 setup(
     name='django-mongoforms',
-    version='0.2.1',
+    version='0.2.2',
     description='A Django-ModelForm clone for mongoengine',
     author='Stephan Jaekel',
     author_email='steph@rdev.info',
