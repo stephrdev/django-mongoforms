@@ -68,6 +68,28 @@ class ListField(forms.MultiValueField):
             widgets=map(attrgetter('widget'), self.fields))
 
 
+class DictField(forms.MultiValueField):
+    """
+    Dict field for mongo forms.
+    Uses MultiValueField from django.forms module.
+    """
+    key_field_class = forms.CharField
+    key_field_attrs = {'max_length': 255}
+    value_field_class = forms.CharField
+    value_field_attrs = {'max_length': 255}
+
+    def __init__(self, dict_size=2, *args, **kwargs):
+        forms.Field.__init__(self, *args, **kwargs)
+        self.fields = []
+
+        for field_num in range(dict_size):
+            self.fields.append(self.key_field_class(self.key_field_attrs))
+            self.fields.append(self.value_field_class(self.value_field_attrs))
+
+        self.widget = ListWidget(
+            widgets=map(attrgetter('widget'), self.fields))
+
+
 class EmbeddedDocumentField(forms.Field):
 
     def __init__(self, field, field_name, *args, **kwargs):
@@ -194,6 +216,11 @@ class MongoFormFieldGenerator(object):
             label=label,
             field=field.field,  # inner_field = this_field.inner_field
             field_name_base=field_name,
+            required=field.required,
+            initial=field.default)
+
+    def generate_dictfield(self, field_name, field):
+        return DictField(
             required=field.required,
             initial=field.default)
 
