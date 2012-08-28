@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from django import forms
 from django.utils.encoding import smart_unicode
 from bson.errors import InvalidId
@@ -219,13 +221,15 @@ class MongoFormFieldGenerator(object):
             required=field.required,
             initial=field.default)
 
-    def generate_dictfield(self, field_name, field):
+    def generate_dictfield(self, field_name, field, label):
         return DictField(
+            label=label,
             required=field.required,
             initial=field.default)
 
-    def generate_embeddeddocumentfield(self, field_name, field):
+    def generate_embeddeddocumentfield(self, field_name, field, label):
         return EmbeddedDocumentField(
+            label=label,
             field=field,
             field_name=field_name,
             required=field.required,
