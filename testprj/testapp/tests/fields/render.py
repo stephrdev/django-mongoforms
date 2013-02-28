@@ -10,7 +10,7 @@ class _FieldRenderTestCase(MongoengineTestCase):
     # mongoengine field instance to test
     field_class = None
     # widget rendering result (most common value)
-    rendered_widget = '<input type="text" name="test_field" />'
+    rendered_widget = '<input name="test_field" type="text" />'
     # hook for not implemented fields
     is_not_implemented = False
 
@@ -40,7 +40,7 @@ class _FieldRenderTestCase(MongoengineTestCase):
 class Test001StringFieldRender(_FieldRenderTestCase):
     field_class = StringField
     rendered_widget = \
-        '<textarea rows="10" cols="40" name="test_field"></textarea>'
+        '<textarea cols="40" name="test_field" rows="10">\r\n</textarea>'
 
 
 class Test002IntFieldRender(_FieldRenderTestCase):
@@ -54,7 +54,7 @@ class Test003FloatFieldRender(_FieldRenderTestCase):
 class Test004BooleanFieldRender(_FieldRenderTestCase):
     field_class = BooleanField
     rendered_widget = \
-        '<input type="checkbox" name="test_field" />'
+        '<input name="test_field" type="checkbox" />'
 
 
 class Test005DateTimeFieldRender(_FieldRenderTestCase):
