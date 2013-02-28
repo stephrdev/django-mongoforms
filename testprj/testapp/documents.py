@@ -24,3 +24,4 @@ class Test002StringField(Document):
         ('XL', 'Extra Large'),
         ('XXL', 'Extra Extra Large')))
     string_field_2 = StringField(choices=('S', 'M', 'L', 'XL', 'XXL'))
+    string_field_3 = StringField(regex=r'^test.*$')

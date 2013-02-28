@@ -24,3 +24,9 @@ class Test003FormFieldOrder(MongoForm):
         fields = ('username', 'email', 'password')
     password = CharField(widget=PasswordInput, label="Your password")
     repeat_password = CharField(widget=PasswordInput, label="Repeat password")
+
+
+class Test004StringFieldForm(MongoForm):
+    class Meta:
+        document = Test002StringField
+        fields = ('string_field_3',)

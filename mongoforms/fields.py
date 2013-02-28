@@ -67,7 +67,7 @@ class MongoFormFieldGenerator(object):
     def generate_stringfield(self, field_name, field, label):
 
         if field.regex:
-            return forms.CharField(
+            return forms.RegexField(
                 label=label,
                 regex=field.regex,
                 required=field.required,
