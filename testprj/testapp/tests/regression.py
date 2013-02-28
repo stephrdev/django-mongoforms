@@ -1,7 +1,8 @@
 from django.test.client import Client
 
 from ..documents import Test001Parent
-from ..forms import Test002StringFieldForm, Test003FormFieldOrder
+from ..forms import (Test002StringFieldForm, Test003FormFieldOrder,
+    Test004StringFieldForm)
 
 from testprj.tests import MongoengineTestCase
 
@@ -47,3 +48,12 @@ class MongoformsRegressionTests(MongoengineTestCase):
         self.assertListEqual(
             ['username', 'email', 'password', 'repeat_password'],
             form.fields.keys())
+
+    def test004_issue_23_StringField_regex(self):
+        form = Test004StringFieldForm({'string_field_3': 'testbar',})
+        self.assertTrue(form.is_valid())
+        self.assertEqual('testbar', form.cleaned_data['string_field_3'])
+
+    def test004_issue_23_StringField_regex_fail(self):
+        form = Test004StringFieldForm({'string_field_3': 'foobar',})
+        self.assertFalse(form.is_valid())
